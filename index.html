@@ -25,6 +25,20 @@
     cursor: pointer;
     user-select: none;
     font-size: 18px;
+    position: relative;
+    padding-left: 20px;
+  }
+  .field > h3::before {
+    content: "▼";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    transition: transform 0.3s ease;
+  }
+  .field.open > h3::before {
+    content: "▲";
   }
   .field.especie > h3 { border-left: 6px solid #e74c3c; }      /* rojo */
   .field.dispositivo > h3 { border-left: 6px solid #3498db; }  /* azul */
@@ -34,6 +48,9 @@
   .indicators {
     padding-left: 15px;
     display: none;
+  }
+  .field.open .indicators {
+    display: block;
   }
   .indicators label {
     display: block;
@@ -55,7 +72,7 @@
 
 <div id="sidebar">
   <div class="field especie">
-    <h3>Especie ▼</h3>
+    <h3>Especie</h3>
     <div class="indicators">
       <label><input type="checkbox" data-field="especie" value="Ovina" /> Ovina</label>
       <label><input type="checkbox" data-field="especie" value="Caprina" /> Caprina</label>
@@ -67,7 +84,7 @@
   </div>
 
   <div class="field dispositivo">
-    <h3>Dispositivos ▼</h3>
+    <h3>Dispositivos</h3>
     <div class="indicators">
       <label><input type="checkbox" data-field="dispositivo" value="Drones" /> Drones</label>
       <label><input type="checkbox" data-field="dispositivo" value="RFID" /> RFID</label>
@@ -83,7 +100,7 @@
   </div>
 
   <div class="field estudio">
-    <h3>Estudio ▼</h3>
+    <h3>Estudio</h3>
     <div class="indicators">
       <label><input type="checkbox" data-field="estudio" value="Comportamiento alimenticio" /> Comportamiento alimenticio</label>
       <label><input type="checkbox" data-field="estudio" value="Comportamiento social" /> Comportamiento social</label>
@@ -94,7 +111,7 @@
   </div>
 
   <div class="field proyecto">
-    <h3>Proyecto ▼</h3>
+    <h3>Proyecto</h3>
     <div class="indicators">
       <label><input type="checkbox" data-field="proyecto" value="Project1" /> Project1</label>
       <label><input type="checkbox" data-field="proyecto" value="Project2" /> Project2</label>
@@ -107,17 +124,11 @@
 <div id="network"></div>
 
 <script>
-// Toggle desplegables
+// Toggle desplegables con clase 'open'
 document.querySelectorAll('#sidebar .field > h3').forEach(h3 => {
   h3.addEventListener('click', () => {
-    const ind = h3.nextElementSibling;
-    if (ind.style.display === 'block') {
-      ind.style.display = 'none';
-      h3.textContent = h3.textContent.replace('▲','▼');
-    } else {
-      ind.style.display = 'block';
-      h3.textContent = h3.textContent.replace('▼','▲');
-    }
+    const fieldDiv = h3.parentElement;
+    fieldDiv.classList.toggle('open');
   });
 });
 
@@ -300,3 +311,4 @@ generarRed();
 
 </body>
 </html>
+
