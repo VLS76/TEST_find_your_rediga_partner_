@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Red de Personas por Indicadores</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+    }
+    .sidebar {
+      width: 300px;
+      background: #f5f5f5;
+      padding: 15px;
+      overflow-y: auto;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    }
+    .filter-section {
+      margin-bottom: 20px;
+    }
+    .filter-header {
+      background: #4a6fa5;
+      color: white;
+      padding: 10px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    .filter-options {
+      display: none;
+      padding: 10px;
+      background: white;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+    .filter-option {
+      margin: 5px 0;
+      display: flex;
+      align-items: center;
+    }
+    .filter-option input {
+      margin-right: 8px;
+    }
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+    #network {
+      width: 100%;
+      height: 80vh;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: white;
+    }
+    h1 {
+      color: #333;
+      margin-top: 0;
+    }
+    .controls {
+      margin-bottom: 15px;
+      display: flex;
+      gap: 10px;
+    }
+    button {
+      padding: 8px 15px;
+      background: #4a6fa5;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #3a5a80;
+    }
+    .legend {
+      display: flex;
+      gap: 20px;
+      margin-top: 10px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      font-size: 14px;
+    }
+    .legend-color {
+      width: 15px;
+      height: 15px;
+      margin-right: 5px;
+      border-radius: 50%;
+    }
+  </style>
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+  <div class="sidebar">
+    <h2>Filtros</h2>
+    
+    <div class="filter-section">
+      <div class="filter-header" onclick="toggleFilter('especie')">Especie ▼</div>
+      <div id="especie" class="filter-options">
+        <label class="filter-option"><input type="checkbox" value="Ovina"> Ovina</label>
+        <label class="filter-option"><input type="checkbox" value="Caprina"> Caprina</label>
+        <label class="filter-option"><input type="checkbox" value="Vacuna"> Vacuna</label>
+        <label class="filter-option"><input type="checkbox" value="Porcina"> Porcina</label>
+        <label class="filter-option"><input type="checkbox" value="Avícola"> Avícola</label>
+        <label class="filter-option"><input type="checkbox" value="cunícula"> Cunícula</label>
+      </div>
+    </div>
+    
+    <div class="filter-section">
+      <div class="filter-header" onclick="toggleFilter('dispositivos')">Dispositivos ▼</div>
+      <div id="dispositivos" class="filter-options">
+        <label class="filter-option"><input type="checkbox" value="Drones"> Drones</label>
+        <label class="filter-option"><input type="checkbox" value="RFID"> RFID</label>
+        <label class="filter-option"><input type="checkbox" value="Collares"> Collares</label>
+        <label class="filter-option"><input type="checkbox" value="Cámaras de visión"> Cámaras de visión</label>
+        <label class="filter-option"><input type="checkbox" value="IA"> IA</label>
+        <label class="filter-option"><input type="checkbox" value="Alimentadores automáticos"> Alimentadores automáticos</label>
+        <label class="filter-option"><input type="checkbox" value="Básculas"> Básculas</label>
+        <label class="filter-option"><input type="checkbox" value="Sensores acústicos"> Sensores acústicos</label>
+        <label class="filter-option"><input type="checkbox" value="Sensores de movimiento"> Sensores de movimiento</label>
+        <label class="filter-option"><input type="checkbox" value="Vallados virtuales"> Vallados virtuales</label>
+      </div>
+    </div>
+    
+    <div class="filter-section">
+      <div class="filter-header" onclick="toggleFilter('estudio')">Estudio ▼</div>
+      <div id="estudio" class="filter-options">
+        <label class="filter-option"><input type="checkbox" value="Comportamiento alimenticio"> Comportamiento alimenticio</label>
+        <label class="filter-option"><input type="checkbox" value="Comportamiento social"> Comportamiento social</label>
+        <label class="filter-option"><input type="checkbox" value="Manejo"> Manejo</label>
+        <label class="filter-option"><input type="checkbox" value="Nutrición"> Nutrición</label>
+        <label class="filter-option"><input type="checkbox" value="Salud"> Salud</label>
+      </div>
+    </div>
+    
+    <div class="filter-section">
+      <div class="filter-header" onclick="toggleFilter('proyectos')">Proyectos ▼</div>
+      <div id="proyectos" class="filter-options">
+        <label class="filter-option"><input type="checkbox" value="Project1"> Project1</label>
+        <label class="filter-option"><input type="checkbox" value="Project2"> Project2</label>
+        <label class="filter-option"><input type="checkbox" value="Project3"> Project3</label>
+        <label class="filter-option"><input type="checkbox" value="Project4"> Project4</label>
+      </div>
+    </div>
+    
+    <button onclick="applyFilters()">Aplicar Filtros</button>
+    <button onclick="resetFilters()">Limpiar Filtros</button>
+  </div>
+  
+  <div class="main-content">
+    <h1>Red de Personas por Indicadores</h1>
+    
+    <div class="controls">
+      <button onclick="showAllConnections()">Mostrar todas las conexiones</button>
+      <button onclick="showOnlyFiltered()">Mostrar solo filtradas</button>
+    </div>
+    
+    <div id="network"></div>
+    
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #4a6fa5;"></div>
+        <span>Personas</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #ff7f50;"></div>
+        <span>Indicadores</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #4CAF50;"></div>
+        <span>Indicadores seleccionados</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Datos de ejemplo (5 personas)
+    const personas = [
+      { 
+        nombre: "Ana García", 
+        especie: ["Ovina", "Caprina"], 
+        dispositivos: ["Drones", "RFID"], 
+        estudio: ["Comportamiento social"], 
+        proyectos: ["Project1"] 
+      },
+      { 
+        nombre: "Luis Martínez", 
+        especie: ["Vacuna"], 
+        dispositivos: ["Collares", "IA"], 
+        estudio: ["Nutrición"], 
+        proyectos: ["Project2", "Project3"] 
+      },
+      { 
+        nombre: "Marta Rodríguez", 
+        especie: ["Porcina", "Avícola"], 
+        dispositivos: ["Básculas", "Sensores acústicos"], 
+        estudio: ["Salud"], 
+        proyectos: ["Project4"] 
+      },
+      { 
+        nombre: "Carlos Sánchez", 
+        especie: ["cunícula"], 
+        dispositivos: ["Vallados virtuales"], 
+        estudio: ["Manejo"], 
+        proyectos: ["Project1", "Project4"] 
+      },
+      { 
+        nombre: "Elena López", 
+        especie: ["Ovina", "Porcina"], 
+        dispositivos: ["Cámaras de visión"], 
+        estudio: ["Comportamiento alimenticio"], 
+        proyectos: ["Project3"] 
+      }
+    ];
+
+    // Variables globales
+    let network;
+    let allNodes = [];
+    let allEdges = [];
+    let filteredNodes = [];
+    let filteredEdges = [];
+    let selectedFilters = {
+      especie: [],
+      dispositivos: [],
+      estudio: [],
+      proyectos: []
+    };
+
+    // Inicializar la red
+    function initNetwork() {
+      const container = document.getElementById('network');
+      const data = {
+        nodes: new vis.DataSet(allNodes),
+        edges: new vis.DataSet(allEdges)
+      };
+      
+      const options = {
+        nodes: {
+          shape: 'dot',
+          size: 20,
+          font: {
+            size: 12,
+            face: 'Arial'
+          },
+          borderWidth: 2,
+          shadow: true
+        },
+        edges: {
+          width: 2,
+          color: {
+            color: '#cccccc',
+            highlight: '#4a6fa5',
+            hover: '#4a6fa5'
+          },
+          smooth: {
+            type: 'continuous'
+          },
+          selectionWidth: 3
+        },
+        physics: {
+          barnesHut: {
+            gravitationalConstant: -2000,
+            centralGravity: 0.3,
+            springLength: 200,
+            springConstant: 0.04,
+            damping: 0.09,
+            avoidOverlap: 0.1
+          },
+          minVelocity: 0.75
+        },
+        interaction: {
+          hover: true,
+          tooltipDelay: 200,
+          hideEdgesOnDrag: false
+        }
+      };
+      
+      network = new vis.Network(container, data, options);
+      
+      // Evento al hacer clic en un nodo
+      network.on("click", function(params) {
+        if (params.nodes.length > 0) {
+          const nodeId = params.nodes[0];
+          const node = allNodes.find(n => n.id === nodeId);
+          
+          if (node) {
+            if (node.group === 'persona') {
+              // Mostrar información de la persona
+              const persona = personas.find(p => p.nombre === nodeId);
+              if (persona) {
+                let info = `<strong>${persona.nombre}</strong><br>`;
+                info += `<strong>Especie:</strong> ${persona.especie.join(', ')}<br>`;
+                info += `<strong>Dispositivos:</strong> ${persona.dispositivos.join(', ')}<br>`;
+                info += `<strong>Estudio:</strong> ${persona.estudio.join(', ')}<br>`;
+                info += `<strong>Proyectos:</strong> ${persona.proyectos.join(', ')}`;
+                alert(info);
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Construir todos los nodos y conexiones
+    function buildNetworkData() {
+      allNodes = [];
+      allEdges = [];
+      
+      // Agregar nodos de personas
+      personas.forEach(persona => {
+        allNodes.push({
+          id: persona.nombre,
+          label: persona.nombre,
+          group: 'persona',
+          color: {
+            background: '#4a6fa5',
+            border: '#3a5a80',
+            highlight: {
+              background: '#5a8fc5',
+              border: '#4a7fb0'
+            },
+            hover: {
+              background: '#5a8fc5',
+              border: '#4a7fb0'
+            }
+          },
+          font: {
+            color: 'white'
+          },
+          shape: 'ellipse',
+          size: 25
+        });
+        
+        // Agregar nodos de indicadores y conexiones
+        ['especie', 'dispositivos', 'estudio', 'proyectos'].forEach(campo => {
+          persona[campo].forEach(indicador => {
+            // Verificar si el nodo de indicador ya existe
+            if (!allNodes.some(n => n.id === indicador)) {
+              allNodes.push({
+                id: indicador,
+                label: indicador,
+                group: 'indicador',
+                color: {
+                  background: '#ff7f50',
+                  border: '#e06f40',
+                  highlight: {
+                    background: '#ff9f70',
+                    border: '#ff8f60'
+                  },
+                  hover: {
+                    background: '#ff9f70',
+                    border: '#ff8f60'
+                  }
+                },
+                font: {
+                  color: 'black'
+                },
+                shape: 'box',
+                size: 15
+              });
+            }
+            
+            // Crear conexión entre persona e indicador
+            allEdges.push({
+              from: persona.nombre,
+              to: indicador,
+              color: {
+                color: '#cccccc',
+                opacity: 0.7
+              },
+              smooth: {
+                type: 'continuous'
+              }
+            });
+          });
+        });
+      });
+      
+      // Actualizar la red
+      if (network) {
+        network.setData({
+          nodes: new vis.DataSet(allNodes),
+          edges: new vis.DataSet(allEdges)
+        });
+      }
+    }
+
+    // Alternar visibilidad de los filtros
+    function toggleFilter(filterId) {
+      const filter = document.getElementById(filterId);
+      const header = filter.previousElementSibling;
+      
+      if (filter.style.display === 'block') {
+        filter.style.display = 'none';
+        header.innerHTML = header.innerHTML.replace('▼', '▶');
+      } else {
+        filter.style.display = 'block';
+        header.innerHTML = header.innerHTML.replace('▶', '▼');
+      }
+    }
+
+    // Obtener filtros seleccionados
+    function getSelectedFilters() {
+      selectedFilters = {
+        especie: getCheckedValues('especie'),
+        dispositivos: getCheckedValues('dispositivos'),
+        estudio: getCheckedValues('estudio'),
+        proyectos: getCheckedValues('proyectos')
+      };
+      return selectedFilters;
+    }
+
+    // Obtener valores de checkboxes marcados
+    function getCheckedValues(filterId) {
+      const checkboxes = document.querySelectorAll(`#${filterId} input[type="checkbox"]:checked`);
+      return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    // Aplicar filtros
+    function applyFilters() {
+      const filters = getSelectedFilters();
+      
+      // Si no hay filtros seleccionados, mostrar todo
+      if (Object.values(filters).every(arr => arr.length === 0)) {
+        showAllConnections();
+        return;
+      }
+      
+      // Obtener personas que coincidan con AL MENOS UNO de los filtros seleccionados en cada categoría
+      const personasFiltradas = personas.filter(persona => {
+        // Verificar si la persona coincide con al menos un filtro en cada categoría seleccionada
+        const hasEspecie = filters.especie.length === 0 || filters.especie.some(f => persona.especie.includes(f));
+        const hasDispositivos = filters.dispositivos.length === 0 || filters.dispositivos.some(f => persona.dispositivos.includes(f));
+        const hasEstudio = filters.estudio.length === 0 || filters.estudio.some(f => persona.estudio.includes(f));
+        const hasProyectos = filters.proyectos.length === 0 || filters.proyectos.some(f => persona.proyectos.includes(f));
+        
+        return hasEspecie && hasDispositivos && hasEstudio && hasProyectos;
+      });
+      
+      // Obtener nombres de personas filtradas
+      const nombresPersonasFiltradas = personasFiltradas.map(p => p.nombre);
+      
+      // Obtener todos los indicadores relevantes (seleccionados y relacionados)
+      const indicadoresRelevantes = new Set();
+      
+      // Agregar los indicadores seleccionados
+      Object.values(filters).forEach(categoria => {
+        categoria.forEach(indicador => indicadoresRelevantes.add(indicador));
+      });
+      
+      // Agregar los indicadores relacionados con las personas filtradas
+      personasFiltradas.forEach(persona => {
+        ['especie', 'dispositivos', 'estudio', 'proyectos'].forEach(campo => {
+          persona[campo].forEach(indicador => indicadoresRelevantes.add(indicador));
+        });
+      });
+      
+      // Filtrar nodos
+      filteredNodes = allNodes.filter(node => {
+        if (node.group === 'persona') {
+          return nombresPersonasFiltradas.includes(node.id);
+        } else {
+          return indicadoresRelevantes.has(node.id);
+        }
+      });
+      
+      // Filtrar conexiones
+      filteredEdges = allEdges.filter(edge => {
+        const fromPersona = nombresPersonasFiltradas.includes(edge.from);
+        const toIndicador = indicadoresRelevantes.has(edge.to);
+        return fromPersona && toIndicador;
+      });
+      
+      // Resaltar los indicadores seleccionados
+      filteredNodes = filteredNodes.map(node => {
+        if (node.group === 'indicador' && Object.values(filters).flat().includes(node.id)) {
+          return {
+            ...node,
+            color: {
+              ...node.color,
+              background: '#4CAF50',
+              border: '#3a9f40',
+              highlight: {
+                background: '#5abf60',
+                border: '#4aaf50'
+              },
+              hover: {
+                background: '#5abf60',
+                border: '#4aaf50'
+              }
+            }
+          };
+        }
+        return node;
+      });
+      
+      // Actualizar la red con los nodos filtrados
+      network.setData({
+        nodes: new vis.DataSet(filteredNodes),
+        edges: new vis.DataSet(filteredEdges)
+      });
+      
+      // Ajustar la vista para mostrar todos los nodos filtrados
+      network.fit({
+        nodes: filteredNodes.map(n => n.id),
+        animation: true
+      });
+    }
+
+    // Mostrar todas las conexiones
+    function showAllConnections() {
+      // Resetear todos los checkboxes
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+      });
+      
+      // Mostrar todos los nodos y conexiones
+      network.setData({
+        nodes: new vis.DataSet(allNodes),
+        edges: new vis.DataSet(allEdges)
+      });
+      
+      // Ajustar la vista
+      network.fit({
+        animation: true
+      });
+    }
+
+    // Mostrar solo las conexiones filtradas
+    function showOnlyFiltered() {
+      if (filteredNodes.length > 0) {
+        network.setData({
+          nodes: new vis.DataSet(filteredNodes),
+          edges: new vis.DataSet(filteredEdges)
+        });
+        
+        network.fit({
+          nodes: filteredNodes.map(n => n.id),
+          animation: true
+        });
+      }
+    }
+
+    // Limpiar filtros
+    function resetFilters() {
+      // Desmarcar todos los checkboxes
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.checked = false;
+      });
+      
+      // Mostrar todos los nodos y conexiones
+      showAllConnections();
+    }
+
+    // Inicializar la aplicación
+    document.addEventListener('DOMContentLoaded', function() {
+      // Construir los datos de la red
+      buildNetworkData();
+      
+      // Inicializar la visualización de la red
+      initNetwork();
+      
+      // Mostrar todos los filtros al cargar
+      document.querySelectorAll('.filter-options').forEach(filter => {
+        filter.style.display = 'block';
+      });
+    });
+  </script>
+</body>
+</html>
