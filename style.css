@@ -1,0 +1,191 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-height: 100vh;
+}
+
+.container {
+    display: flex;
+    width: 90%;
+    max-width: 1200px;
+    background-color: #fff;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin: 20px 0;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.sidebar {
+    width: 250px;
+    padding: 20px;
+    background-color: #eee;
+    border-right: 1px solid #ddd;
+    box-sizing: border-box;
+}
+
+.sidebar h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.filter-group {
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.accordion {
+    background-color: #f1f1f1;
+    color: #444;
+    cursor: pointer;
+    padding: 12px 18px;
+    width: 100%;
+    border: none;
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+    transition: 0.4s;
+    font-weight: bold;
+}
+
+.active, .accordion:hover {
+    background-color: #ddd;
+}
+
+.panel {
+    padding: 0 18px;
+    background-color: white;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+}
+
+.panel label {
+    display: block;
+    margin: 8px 0;
+    cursor: pointer;
+}
+
+.panel input[type="checkbox"] {
+    margin-right: 8px;
+    accent-color: #007bff; /* Color del checkbox al ser seleccionado */
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.main-content h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+.person-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px; /* Espacio entre los elementos de la nube */
+    min-height: 200px; /* Para que se vea el área incluso si no hay resultados */
+    align-items: center; /* Centrar verticalmente cuando hay pocos elementos */
+}
+
+.person-card {
+    background-color: #e9f5ff;
+    border: 1px solid #a8d5ff;
+    border-radius: 10px;
+    padding: 15px 20px;
+    text-align: center;
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #0056b3;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: default; /* Para indicar que no son clicables */
+}
+
+.person-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+}
+
+.person-card span {
+    display: block; /* Para que cada indicador esté en su propia línea */
+    font-size: 0.8em;
+    color: #555;
+    font-weight: normal;
+    margin-top: 5px;
+}
+
+.no-results {
+    text-align: center;
+    color: #666;
+    font-size: 1.1em;
+    margin-top: 50px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+        width: 100%;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+}
+
+.main-content {
+    flex-grow: 1;
+    padding: 20px;
+    box-sizing: border-box;
+    display: flex; /* Añadir flexbox para centrar y manejar el contenido */
+    flex-direction: column;
+}
+
+.network-container {
+    flex-grow: 1; /* Permitir que ocupe el espacio restante */
+    width: 100%;
+    min-height: 400px; /* Altura mínima para la red */
+    border: 1px solid #ccc;
+    background-color: #fcfcfc;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    margin-top: 20px; /* Separación del título */
+    position: relative; /* Necesario para que vis.js funcione bien */
+}
+
+/* Ocultar la nube de personas antigua */
+.person-cloud {
+    display: none;
+}
+
+.no-results {
+    text-align: center;
+    color: #666;
+    font-size: 1.1em;
+    margin-top: 20px; /* Ajuste para el nuevo contenedor */
+    flex-shrink: 0; /* Evitar que se encoja */
+}
+
+/* Ajustes para dispositivos móviles si es necesario */
+@media (max-width: 768px) {
+    /* ... (tus estilos responsive anteriores) ... */
+    .network-container {
+        min-height: 300px; /* Ajuste de altura para móviles */
+    }
+}
