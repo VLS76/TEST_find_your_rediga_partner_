@@ -1,314 +1,370 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Test de Personas - Visualización en red</title>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    margin: 0; display: flex; height: 100vh; overflow: hidden;
-  }
-  #sidebar {
-    width: 280px;
-    background: #f0f0f0;
-    overflow-y: auto;
-    border-right: 2px solid #ccc;
-    padding: 10px;
-  }
-  .field {
-    margin-bottom: 20px;
-  }
-  .field > h3 {
-    margin: 0 0 5px 0;
-    padding: 8px;
-    cursor: pointer;
-    user-select: none;
-    font-size: 18px;
-    position: relative;
-    padding-left: 20px;
-  }
-  .field > h3::before {
-    content: "▼";
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 14px;
-    transition: transform 0.3s ease;
-  }
-  .field.open > h3::before {
-    content: "▲";
-  }
-  .field.especie > h3 { border-left: 6px solid #e74c3c; }      /* rojo */
-  .field.dispositivo > h3 { border-left: 6px solid #3498db; }  /* azul */
-  .field.estudio > h3 { border-left: 6px solid #2ecc71; }      /* verde */
-  .field.proyecto > h3 { border-left: 6px solid #f1c40f; }     /* amarillo */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Red de Personas</title>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
 
-  .indicators {
-    padding-left: 15px;
-    display: none;
-  }
-  .field.open .indicators {
-    display: block;
-  }
-  .indicators label {
-    display: block;
-    margin: 5px 0;
-    cursor: pointer;
-  }
+        #filters-container {
+            width: 280px;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
 
-  #network {
-    flex: 1;
-  }
-</style>
+        .filter-group {
+            margin-bottom: 15px;
+            padding: 10px;
+            border-radius: 5px;
+        }
 
-<!-- Librería vis-network -->
-<script type="text/javascript" src="https://unpkg.com/vis-network@9.1.2/dist/vis-network.min.js"></script>
-<link href="https://unpkg.com/vis-network@9.1.2/styles/vis-network.min.css" rel="stylesheet" type="text/css" />
+        .filter-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #333;
+        }
 
+        .filter-group select {
+            width: 100%;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            background-color: white;
+            min-height: 80px; /* Para que se vea que es multiple */
+        }
+        
+        /* Colores de borde para cada campo */
+        #filter-especie { border: 2px solid teal; }
+        #filter-dispositivo { border: 2px solid tomato; }
+        #filter-estudio { border: 2px solid gold; }
+        #filter-proyecto { border: 2px solid mediumpurple; }
+        #filter-status { border: 2px solid lightseagreen; }
+        #filter-institucion { border: 2px solid salmon; }
+
+
+        #network-container {
+            flex-grow: 1;
+            height: 100%;
+        }
+
+        #network {
+            width: 100%;
+            height: 100%;
+            background-color: #e9e9e9;
+        }
+        
+        h2 {
+            margin-top:0;
+            font-size: 1.2em;
+            color: #555;
+        }
+    </style>
 </head>
 <body>
 
-<div id="sidebar">
-  <div class="field especie">
-    <h3>Especie</h3>
-    <div class="indicators">
-      <label><input type="checkbox" data-field="especie" value="Ovina" /> Ovina</label>
-      <label><input type="checkbox" data-field="especie" value="Caprina" /> Caprina</label>
-      <label><input type="checkbox" data-field="especie" value="Vacuna" /> Vacuna</label>
-      <label><input type="checkbox" data-field="especie" value="Porcina" /> Porcina</label>
-      <label><input type="checkbox" data-field="especie" value="Avícola" /> Avícola</label>
-      <label><input type="checkbox" data-field="especie" value="Cunícula" /> Cunícula</label>
+    <div id="filters-container">
+        <h2>Filtros</h2>
+        <div id="filter-especie" class="filter-group">
+            <label for="especie">Especie:</label>
+            <select id="especie" multiple>
+                <option value="Ovina">Ovina</option>
+                <option value="Caprina">Caprina</option>
+                <option value="Vacuna">Vacuna</option>
+                <option value="Porcina">Porcina</option>
+                <option value="Avícola">Avícola</option>
+                <option value="Cunícula">Cunícula</option>
+            </select>
+        </div>
+
+        <div id="filter-dispositivo" class="filter-group">
+            <label for="dispositivo">Dispositivos:</label>
+            <select id="dispositivo" multiple>
+                <option value="Drones">Drones</option>
+                <option value="RFID">RFID</option>
+                <option value="Collares">Collares</option>
+                <option value="Cámaras de visión">Cámaras de visión</option>
+                <option value="IA">IA</option>
+                <option value="Alimentadores automáticos">Alimentadores automáticos</option>
+                <option value="Básculas">Básculas</option>
+                <option value="Sensores acústicos">Sensores acústicos</option>
+                <option value="Sensores de movimiento">Sensores de movimiento</option>
+                <option value="Vallados virtuales">Vallados virtuales</option>
+            </select>
+        </div>
+
+        <div id="filter-estudio" class="filter-group">
+            <label for="estudio">Estudio:</label>
+            <select id="estudio" multiple>
+                <option value="Comportamiento alimenticio">Comportamiento alimenticio</option>
+                <option value="Comportamiento social">Comportamiento social</option>
+                <option value="Manejo">Manejo</option>
+                <option value="Nutrición">Nutrición</option>
+                <option value="Salud">Salud</option>
+            </select>
+        </div>
+
+        <div id="filter-proyecto" class="filter-group">
+            <label for="proyecto">Proyectos:</label>
+            <select id="proyecto" multiple>
+                <option value="Project1">Project1</option>
+                <option value="Project2">Project2</option>
+                <option value="Project3">Project3</option>
+                <option value="Project4">Project4</option>
+            </select>
+        </div>
+        
+        <div id="filter-status" class="filter-group">
+            <label for="status">Status:</label>
+            <select id="status" multiple>
+                <option value="IP">IP</option>
+                <option value="Predoc">Predoc</option>
+                <option value="Postdoc">Postdoc</option>
+                <option value="Técnico">Técnico</option>
+            </select>
+        </div>
+
+        <div id="filter-institucion" class="filter-group">
+            <label for="institucion">Institución:</label>
+            <select id="institucion" multiple>
+                <option value="UPV">UPV</option>
+                <option value="UdL">UdL</option>
+                <option value="UCO">UCO</option>
+                <option value="USAL">USAL</option>
+                <option value="UAB">UAB</option>
+            </select>
+        </div>
     </div>
-  </div>
 
-  <div class="field dispositivo">
-    <h3>Dispositivos</h3>
-    <div class="indicators">
-      <label><input type="checkbox" data-field="dispositivo" value="Drones" /> Drones</label>
-      <label><input type="checkbox" data-field="dispositivo" value="RFID" /> RFID</label>
-      <label><input type="checkbox" data-field="dispositivo" value="Collares" /> Collares</label>
-      <label><input type="checkbox" data-field="dispositivo" value="Cámaras de visión" /> Cámaras de visión</label>
-      <label><input type="checkbox" data-field="dispositivo" value="IA" /> IA</label>
-      <label><input type="checkbox" data-field="dispositivo" value="Alimentadores automáticos" /> Alimentadores automáticos</label>
-      <label><input type="checkbox" data-field="dispositivo" value="Básculas" /> Básculas</label>
-      <label><input type="checkbox" data-field="dispositivo" value="Sensores acústicos" /> Sensores acústicos</label>
-      <label><input type="checkbox" data-field="dispositivo" value="Sensores de movimiento" /> Sensores de movimiento</label>
-      <label><input type="checkbox" data-field="dispositivo" value="Vallados virtuales" /> Vallados virtuales</label>
+    <div id="network-container">
+        <div id="network"></div>
     </div>
-  </div>
 
-  <div class="field estudio">
-    <h3>Estudio</h3>
-    <div class="indicators">
-      <label><input type="checkbox" data-field="estudio" value="Comportamiento alimenticio" /> Comportamiento alimenticio</label>
-      <label><input type="checkbox" data-field="estudio" value="Comportamiento social" /> Comportamiento social</label>
-      <label><input type="checkbox" data-field="estudio" value="Manejo" /> Manejo</label>
-      <label><input type="checkbox" data-field="estudio" value="Nutrición" /> Nutrición</label>
-      <label><input type="checkbox" data-field="estudio" value="Salud" /> Salud</label>
-    </div>
-  </div>
+    <script type="text/javascript">
+        // --- DATOS DE EJEMPLO (15 PERSONAS) ---
+        const personas = [
+            { id: 1, nombre: "Ana García", especie: ["Ovina", "Caprina"], dispositivos: ["RFID", "Collares"], estudio: ["Comportamiento alimenticio"], proyectos: ["Project1"], status: "IP", institucion: "UPV" },
+            { id: 2, nombre: "Luis Fernández", especie: ["Vacuna"], dispositivos: ["Drones", "IA"], estudio: ["Manejo", "Salud"], proyectos: ["Project2", "Project4"], status: "Predoc", institucion: "UPV" },
+            { id: 3, nombre: "Sofía Martínez", especie: ["Porcina"], dispositivos: ["Alimentadores automáticos", "Básculas"], estudio: ["Nutrición"], proyectos: ["Project3"], status: "Postdoc", institucion: "UdL" },
+            { id: 4, nombre: "Carlos Rodríguez", especie: ["Avícola"], dispositivos: ["Cámaras de visión", "Sensores acústicos"], estudio: ["Comportamiento social"], proyectos: ["Project1", "Project2"], status: "IP", institucion: "UCO" },
+            { id: 5, nombre: "Elena Gómez", especie: ["Cunícula", "Ovina"], dispositivos: ["Sensores de movimiento", "Vallados virtuales"], estudio: ["Manejo"], proyectos: ["Project4"], status: "Técnico", institucion: "USAL" },
+            { id: 6, nombre: "Javier Morales", especie: ["Caprina"], dispositivos: ["RFID", "IA"], estudio: ["Salud"], proyectos: ["Project3"], status: "Predoc", institucion: "UCO" },
+            { id: 7, nombre: "Laura Jiménez", especie: ["Vacuna", "Porcina"], dispositivos: ["Collares", "Alimentadores automáticos"], estudio: ["Nutrición", "Comportamiento alimenticio"], proyectos: ["Project2"], status: "Postdoc", institucion: "UPV" },
+            { id: 8, nombre: "David Ruiz", especie: ["Ovina"], dispositivos: ["Drones"], estudio: ["Manejo"], proyectos: ["Project1", "Project4"], status: "IP", institucion: "UAB" },
+            { id: 9, nombre: "Isabel Romero", especie: ["Avícola"], dispositivos: ["Cámaras de visión"], estudio: ["Comportamiento social"], proyectos: ["Project3"], status: "Técnico", institucion: "UdL" },
+            { id: 10, nombre: "Miguel Torres", especie: ["Porcina", "Cunícula"], dispositivos: ["Básculas", "Sensores de movimiento"], estudio: ["Salud"], proyectos: ["Project2"], status: "Predoc", institucion: "USAL" },
+            { id: 11, nombre: "Carmen Navarro", especie: ["Vacuna"], dispositivos: ["Vallados virtuales", "RFID"], estudio: ["Nutrición"], proyectos: ["Project1"], status: "Postdoc", institucion: "UAB" },
+            { id: 12, nombre: "Pablo Herrera", especie: ["Caprina", "Ovina"], dispositivos: ["IA", "Collares"], estudio: ["Comportamiento alimenticio"], proyectos: ["Project4"], status: "IP", institucion: "UPV" },
+            { id: 13, nombre: "Raquel Castillo", especie: ["Avícola"], dispositivos: ["Drones", "Sensores acústicos"], estudio: ["Manejo"], proyectos: ["Project2", "Project3"], status: "Predoc", institucion: "UCO" },
+            { id: 14, nombre: "Sergio Vidal", especie: ["Cunícula"], dispositivos: ["Alimentadores automáticos"], estudio: ["Comportamiento social"], proyectos: ["Project1"], status: "Técnico", institucion: "UPV" },
+            { id: 15, nombre: "Patricia Ramos", especie: ["Ovina"], dispositivos: ["Cámaras de visión", "RFID"], estudio: ["Salud", "Nutrición"], proyectos: ["Project4"], status: "Postdoc", institucion: "UdL" }
+        ];
 
-  <div class="field proyecto">
-    <h3>Proyecto</h3>
-    <div class="indicators">
-      <label><input type="checkbox" data-field="proyecto" value="Project1" /> Project1</label>
-      <label><input type="checkbox" data-field="proyecto" value="Project2" /> Project2</label>
-      <label><input type="checkbox" data-field="proyecto" value="Project3" /> Project3</label>
-      <label><input type="checkbox" data-field="proyecto" value="Project4" /> Project4</label>
-    </div>
-  </div>
-</div>
+        // --- CONFIGURACIÓN DE LA RED (VIS.JS) ---
+        const networkContainer = document.getElementById('network');
+        let network = null;
+        const nodes = new vis.DataSet([]);
+        const edges = new vis.DataSet([]);
+        const data = { nodes: nodes, edges: edges };
+        const options = {
+            nodes: {
+                shape: 'dot',
+                font: {
+                    size: 14,
+                    color: '#333'
+                },
+                borderWidth: 2
+            },
+            edges: {
+                width: 1,
+                smooth: {
+                    type: 'continuous'
+                }
+            },
+            physics: {
+                solver: 'forceAtlas2Based', // Buenas dinámicas para nubes
+                forceAtlas2Based: {
+                    gravitationalConstant: -50,
+                    centralGravity: 0.01,
+                    springLength: 100,
+                    springConstant: 0.08,
+                    avoidOverlap: 0.5 
+                },
+                minVelocity: 0.75,
+                stabilization: { iterations: 150 }
+            },
+            interaction: {
+                tooltipDelay: 200,
+                hideEdgesOnDrag: true,
+                hover: true
+            },
+            layout: {
+                hierarchical: false // Para que sea más tipo nube/red
+            }
+        };
 
-<div id="network"></div>
-
-<script>
-// Toggle desplegables con clase 'open'
-document.querySelectorAll('#sidebar .field > h3').forEach(h3 => {
-  h3.addEventListener('click', () => {
-    const fieldDiv = h3.parentElement;
-    fieldDiv.classList.toggle('open');
-  });
-});
-
-// Datos ejemplo: 5 personas y sus indicadores
-const personas = [
-  {
-    id: 1,
-    name: "Ana",
-    especie: ["Ovina", "Caprina"],
-    dispositivo: ["Drones", "RFID"],
-    estudio: ["Nutrición", "Salud"],
-    proyecto: ["Project1"]
-  },
-  {
-    id: 2,
-    name: "Luis",
-    especie: ["Vacuna"],
-    dispositivo: ["Collares", "IA", "Sensores acústicos"],
-    estudio: ["Comportamiento alimenticio", "Manejo"],
-    proyecto: ["Project2", "Project3"]
-  },
-  {
-    id: 3,
-    name: "María",
-    especie: ["Porcina", "Avícola"],
-    dispositivo: ["Cámaras de visión", "Básculas"],
-    estudio: ["Comportamiento social", "Salud"],
-    proyecto: ["Project1", "Project4"]
-  },
-  {
-    id: 4,
-    name: "Javier",
-    especie: ["Cunícula"],
-    dispositivo: ["Alimentadores automáticos", "Sensores de movimiento"],
-    estudio: ["Nutrición", "Comportamiento social"],
-    proyecto: ["Project2"]
-  },
-  {
-    id: 5,
-    name: "Elena",
-    especie: ["Ovina", "Vacuna"],
-    dispositivo: ["RFID", "Vallados virtuales"],
-    estudio: ["Manejo", "Salud"],
-    proyecto: ["Project3", "Project4"]
-  }
-];
-
-// Guardamos la red y contenedor
-const container = document.getElementById('network');
-let network = null;
-
-// Inicializamos red vacía
-function initNetwork(nodes, edges) {
-  const data = {nodes: new vis.DataSet(nodes), edges: new vis.DataSet(edges)};
-  const options = {
-    nodes: {
-      shape: 'dot',
-      size: 18,
-      font: {size: 14, color: '#000'},
-      borderWidth: 2,
-      color: {
-        border: '#666',
-        background: '#ddd'
-      }
-    },
-    edges: {
-      width: 2,
-      color: '#bbb',
-      smooth: {
-        type: 'continuous'
-      }
-    },
-    physics: {
-      stabilization: true,
-      barnesHut: {
-        gravitationalConstant: -3000,
-        springLength: 200
-      }
-    },
-    layout: {
-      improvedLayout: true
-    }
-  };
-  if(network) {
-    network.setData(data);
-  } else {
-    network = new vis.Network(container, data, options);
-  }
-}
-
-// Obtiene indicadores seleccionados en cada campo
-function getSelectedIndicators() {
-  const selected = {
-    especie: new Set(),
-    dispositivo: new Set(),
-    estudio: new Set(),
-    proyecto: new Set()
-  };
-  document.querySelectorAll('#sidebar input[type=checkbox]').forEach(chk => {
-    if (chk.checked) {
-      selected[chk.dataset.field].add(chk.value);
-    }
-  });
-  return selected;
-}
-
-// Devuelve true si persona tiene al menos un indicador en común con selección para algún campo
-function personaCoincide(persona, seleccion) {
-  for (const field in seleccion) {
-    if (seleccion[field].size === 0) continue; // si no hay selección en campo, no filtra por ahí
-    const inter = persona[field].filter(x => seleccion[field].has(x));
-    if (inter.length > 0) return true;
-  }
-  return false;
-}
-
-// Genera nodos y edges para la red basado en selección
-function generarRed() {
-  const seleccion = getSelectedIndicators();
-
-  // Si no hay ningún filtro seleccionado, mostramos todos
-  const filtrar = Object.values(seleccion).some(s => s.size > 0);
-
-  // Personas que cumplen al menos un indicador seleccionado
-  const personasFiltradas = filtrar
-    ? personas.filter(p => personaCoincide(p, seleccion))
-    : personas;
-
-  // Nodos: personas
-  const nodes = personasFiltradas.map(p => ({
-    id: p.id,
-    label: p.name,
-    color: '#87ceeb',
-    borderWidth: 3
-  }));
-
-  // Edges: conectamos personas que compartan al menos un indicador de la selección
-  const edges = [];
-  for (let i = 0; i < personasFiltradas.length; i++) {
-    for (let j = i + 1; j < personasFiltradas.length; j++) {
-      const p1 = personasFiltradas[i];
-      const p2 = personasFiltradas[j];
-
-      // Buscamos si comparten indicador entre los seleccionados
-      let tienenConexion = false;
-      for (const field in seleccion) {
-        // Si no se seleccionó nada en el campo, no lo usamos para conectar
-        if (seleccion[field].size === 0) continue;
-
-        // Intersección entre indicadores de p1 y p2 que además están en selección
-        const setP1 = new Set(p1[field].filter(x => seleccion[field].has(x)));
-        const setP2 = new Set(p2[field].filter(x => seleccion[field].has(x)));
-        for (const val of setP1) {
-          if (setP2.has(val)) {
-            tienenConexion = true;
-            break;
-          }
+        function initializeNetwork() {
+            network = new vis.Network(networkContainer, data, options);
+            updateNetwork(); // Carga inicial (sin filtros, mostrará todo o nada según la lógica)
         }
-        if (tienenConexion) break;
-      }
-      if (tienenConexion) {
-        edges.push({from: p1.id, to: p2.id});
-      }
-    }
-  }
+        
+        // --- LÓGICA DE FILTRADO Y ACTUALIZACIÓN ---
+        const filterIds = ["especie", "dispositivo", "estudio", "proyecto", "status", "institucion"];
+        const filterSelects = {};
+        filterIds.forEach(id => {
+            filterSelects[id] = document.getElementById(id);
+            filterSelects[id].addEventListener('change', updateNetwork);
+        });
 
-  initNetwork(nodes, edges);
-}
+        function getSelectedFilters() {
+            const selected = {};
+            let totalSelections = 0;
+            filterIds.forEach(id => {
+                selected[id] = Array.from(filterSelects[id].selectedOptions).map(opt => opt.value);
+                totalSelections += selected[id].length;
+            });
+            return { filters: selected, totalSelections: totalSelections };
+        }
 
-// Actualizamos red al cambiar checkbox
-document.querySelectorAll('#sidebar input[type=checkbox]').forEach(chk => {
-  chk.addEventListener('change', () => {
-    generarRed();
-  });
-});
+        function updateNetwork() {
+            const { filters: currentFilters, totalSelections } = getSelectedFilters();
+            
+            let filteredPersonas = [];
 
-// Mostrar todos inicialmente
-generarRed();
-</script>
+            if (totalSelections === 0) {
+                // Si no hay ningún filtro seleccionado, no mostramos a nadie (o a todos, según prefieras)
+                // Para este caso, mostraremos a nadie hasta que se seleccione algo.
+                filteredPersonas = [];
+            } else {
+                 filteredPersonas = personas.filter(persona => {
+                    // La persona debe tener AL MENOS UNO de los indicadores seleccionados, en CUALQUIERA de los campos.
+                    let match = false;
+                    for (const field of filterIds) {
+                        if (currentFilters[field].length > 0) { // Solo considerar campos con selecciones activas
+                            const personaValues = Array.isArray(persona[field]) ? persona[field] : [persona[field]];
+                            if (personaValues.some(val => currentFilters[field].includes(val))) {
+                                match = true;
+                                break; // Si ya coincide en un campo, es suficiente para incluirla
+                            }
+                        }
+                    }
+                    return match;
+                });
+            }
+
+            const newNodes = [];
+            const newEdges = [];
+            const addedEdges = new Set(); // Para evitar duplicar ejes
+
+            // Agrupar personas por institución para la regla de IP/satélite
+            const personasPorInstitucion = {};
+            filteredPersonas.forEach(p => {
+                if (!personasPorInstitucion[p.institucion]) {
+                    personasPorInstitucion[p.institucion] = [];
+                }
+                personasPorInstitucion[p.institucion].push(p);
+            });
+            
+            filteredPersonas.forEach(persona => {
+                let nodeSize = 20; // Tamaño base
+                let esIP = persona.status === "IP";
+                let color = getColorByInstitution(persona.institucion); // Color por institución
+
+                // Regla de visualización IP/satélite
+                const colegasInstitucion = personasPorInstitucion[persona.institucion] || [];
+                const hayIPEnInstitucion = colegasInstitucion.some(p => p.status === "IP" && filteredPersonas.find(fp => fp.id === p.id));
+
+                if (hayIPEnInstitucion) {
+                    if (esIP) {
+                        nodeSize = 30; // IP más grande
+                    } else {
+                        nodeSize = 15; // Otros más pequeños si hay un IP en su institución en el filtro
+                    }
+                }
+
+                newNodes.push({
+                    id: persona.id,
+                    label: persona.nombre,
+                    title: `<b>${persona.nombre}</b><br>
+                            Status: ${persona.status}<br>
+                            Institución: ${persona.institucion}<br>
+                            Especies: ${persona.especie.join(', ')}<br>
+                            Dispositivos: ${persona.dispositivos.join(', ')}<br>
+                            Estudios: ${persona.estudio.join(', ')}<br>
+                            Proyectos: ${persona.proyectos.join(', ')}`,
+                    size: nodeSize,
+                    color: color,
+                    group: persona.institucion // Agrupar por institución para la física
+                });
+
+                // Añadir ejes (conexiones)
+                // Conectar personas si comparten un proyecto o institución (dentro de los filtrados)
+                filteredPersonas.forEach(otraPersona => {
+                    if (persona.id === otraPersona.id) return;
+
+                    const edgeId1 = `${persona.id}-${otraPersona.id}`;
+                    const edgeId2 = `${otraPersona.id}-${persona.id}`;
+
+                    if (addedEdges.has(edgeId1) || addedEdges.has(edgeId2)) return;
+
+                    let connected = false;
+                    if (persona.institucion === otraPersona.institucion) {
+                        connected = true;
+                    }
+                    if (!connected) {
+                        for (const proj of persona.proyectos) {
+                            if (otraPersona.proyectos.includes(proj)) {
+                                connected = true;
+                                break;
+                            }
+                        }
+                    }
+                    
+                    if (connected) {
+                        newEdges.push({ from: persona.id, to: otraPersona.id });
+                        addedEdges.add(edgeId1);
+                    }
+                });
+            });
+
+            nodes.clear();
+            edges.clear();
+            nodes.add(newNodes);
+            edges.add(newEdges);
+            
+            if (network) {
+                 // Re-estabilizar la red puede ayudar si los nodos cambian mucho
+                if (newNodes.length > 0) {
+                    network.stabilize();
+                }
+            }
+        }
+        
+        function getColorByInstitution(institucion) {
+            // Paleta simple de colores para instituciones
+            const colors = {
+                "UPV": "#FF6347",  // Tomato
+                "UdL": "#4682B4",  // SteelBlue
+                "UCO": "#32CD32",  // LimeGreen
+                "USAL": "#FFD700", // Gold
+                "UAB": "#6A5ACD"  // SlateBlue
+            };
+            return colors[institucion] || "#808080"; // Gris por defecto
+        }
+
+        // Inicializar la red cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', initializeNetwork);
+    </script>
 
 </body>
 </html>
-
